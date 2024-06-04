@@ -33,7 +33,9 @@ class dt(sd):
         username="root",
         password="analog",
         local_dt_filepath="",
+        offline=False,
     ):
+        self.offline = offline
         self.local_dt_filepath = local_dt_filepath
         if arch not in ["arm", "arm64", "auto"]:
             raise Exception("arch can only by arm or arm64 or auto")
@@ -48,32 +50,33 @@ class dt(sd):
         self.dt_source = dt_source
         self._hide = False
         self.warn = False
-        if "remote" in self.dt_source:
-            self._con = Connection(
-                "{username}@{ip}:{port}".format(
-                    username=username,
-                    ip=ip,
-                    port=22,
-                    connect_timeout=5,
-                ),
-                connect_kwargs={"password": password},
-            )
-            self._set_arch(arch)
-            if self.dt_source == "remote_sysfs":
-                self._import_remote_sysfs()
-            else:
-                self._import_remote_sd()
-        else:
-            if "sysfs" in dt_source:
+        if not self.offline:
+            if "remote" in self.dt_source:
+                self._con = Connection(
+                    "{username}@{ip}:{port}".format(
+                        username=username,
+                        ip=ip,
+                        port=22,
+                        connect_timeout=5,
+                    ),
+                    connect_kwargs={"password": password},
+                )
                 self._set_arch(arch)
-                self._import_sysfs()
-            elif dt_source == "local_file":
-                if arch=="auto":
-                    raise Exception("arch must be set when using local_file mode")
-                self._import_file()
+                if self.dt_source == "remote_sysfs":
+                    self._import_remote_sysfs()
+                else:
+                    self._import_remote_sd()
             else:
-                self._set_arch(arch)
-                self._import_local_sd()
+                if "sysfs" in dt_source:
+                    self._set_arch(arch)
+                    self._import_sysfs()
+                elif dt_source == "local_file":
+                    if arch=="auto":
+                        raise Exception("arch must be set when using local_file mode")
+                    self._import_file()
+                else:
+                    self._set_arch(arch)
+                    self._import_local_sd()
 
     def _set_arch(self, arch):
         self.arch = arch

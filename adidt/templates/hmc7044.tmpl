@@ -1,0 +1,53 @@
+&spi1 {
+	status = "okay";
+
+	hmc7044: hmc7044@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#clock-cells = <1>;
+		compatible = "adi,hmc7044";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+
+		jesd204-device;
+		#jesd204-cells = <2>;
+		jesd204-sysref-provider;
+
+		adi,jesd204-max-sysref-frequency-hz = <2000000>; /* 2 MHz */
+
+		adi,pll1-clkin-frequencies = <{{ clock['clock']['vcxo'] }} 10000000 0 0>;
+		adi,vcxo-frequency = <{{ clock['clock']['vcxo'] }}>;
+
+		adi,pll1-loop-bandwidth-hz = <200>;
+
+		adi,pll2-output-frequency = <{{ clock['clock']['vco'] }}>;
+
+		adi,sysref-timer-divider = <1024>;
+		adi,pulse-generator-mode = <0>;
+
+		adi,clkin0-buffer-mode  = <0x07>;
+		adi,clkin1-buffer-mode  = <0x07>;
+		adi,oscin-buffer-mode = <0x15>;
+
+		adi,gpi-controls = <0x00 0x00 0x00 0x00>;
+		adi,gpo-controls = <0x37 0x33 0x00 0x00>;
+
+		clock-output-names =
+		"hmc7044_out0", "hmc7044_out1", "hmc7044_out2",
+		"hmc7044_out3", "hmc7044_out4", "hmc7044_out5",
+		"hmc7044_out6", "hmc7044_out7", "hmc7044_out8",
+		"hmc7044_out9", "hmc7044_out10", "hmc7044_out11",
+		"hmc7044_out12", "hmc7044_out13";
+
+        {% for chan in clock['map'] %}
+		hmc7044_c0{{ clock['map'][chan]['source_port'] }}:channel@{{ clock['map'][chan]['source_port'] }} {
+			reg = <{{ clock['map'][chan]['source_port'] }}>;
+			adi,extended-name = "{{ chan }}";
+			adi,divider = <{{ clock['map'][chan]['divider'] }}>;
+			adi,driver-mode = <HMC7044_DRIVER_MODE_LVDS>;
+		};
+        {% endfor %}
+
+	};
+};
+

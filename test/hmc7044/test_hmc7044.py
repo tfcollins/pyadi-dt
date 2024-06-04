@@ -143,3 +143,31 @@ def test_hmc7044_add_nodes():
             assert impedance_prop_val == impedance_prop_dict
 
     # d.write_out_dts("test.dts")
+
+
+def test_hmc7044_standalone_template():
+
+    clk = dt.hmc7044_dt(offline=True)
+
+    cfg = {
+        "r2": 3620,
+        "n2": 20,
+        "out_dividers": [3, 6],
+        "output_clocks": {
+            "ADC": {"rate": 1000000000, "divider": 3},
+            "FPGA": {"rate": 500000000, "divider": 6},
+        },
+        "vco": 3000000000,
+        "vcxo": 125000000,
+        "vcxo_doubler": 4344,
+    }
+
+    dtsi_str = clk.map_config_to_fragment(cfg)
+    assert len(dtsi_str) > 0
+
+    loc = os.path.dirname(__file__)
+    dtsi = os.path.join(loc, "hmc7044_ref.dtsi")
+    with open(dtsi, "r") as f:
+        ref = f.read()
+
+    assert dtsi_str == ref
