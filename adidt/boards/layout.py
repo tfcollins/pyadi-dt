@@ -23,6 +23,17 @@ class layout:
         Args:
             kwargs: Configuration structs.
         """
+        dts_data = self.gen_dt_str(**kwargs)
+        
+        with open(self.output_filename, "w") as f:
+            f.write(dts_data)
+
+        return self.output_filename
+
+
+    def gen_dt_str(self, **kwargs):
+
+
         if not self.template_filename:
             raise Exception("No template file specified")
 
@@ -39,12 +50,8 @@ class layout:
         template = env.get_template(loc)
 
         kwargs = self.gen_dt_preprocess(**kwargs)
-        output = template.render(**kwargs)
+        return template.render(**kwargs)
 
-        with open(self.output_filename, "w") as f:
-            f.write(output)
-
-        return self.output_filename
 
     def map_jesd_subclass(self, name):
         """Map JESD204 subclass to integer.
